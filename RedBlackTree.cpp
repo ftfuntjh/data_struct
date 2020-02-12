@@ -197,9 +197,8 @@ void RedBlackTree::remove(int element) {
                 node->parent->left = nullptr;
             } else if (node == node->parent->right) {
                 node->parent->right = nullptr;
-            } else {
-                node->parent = nullptr;
             }
+            node->parent = nullptr;
         }
         delete node;
     }
@@ -254,7 +253,7 @@ void RedBlackTree::fixDelete(RedBlackNode *node) {
     if (node == nullptr) {
         return;
     }
-    while (node != root && node->color == NodeColor::BLACK) {
+    while (node != nullptr && node != root && node->color == NodeColor::BLACK) {
         RedBlackNode *sibling = getSibling(node);
         if (RedBlackNode::getColor(sibling) == NodeColor::RED) {
             sibling->color = NodeColor::BLACK;
@@ -268,7 +267,7 @@ void RedBlackTree::fixDelete(RedBlackNode *node) {
                    RedBlackNode::getColor(sibling->right) == NodeColor::BLACK) {
             sibling->color = NodeColor::RED;
             node = node->parent;
-        } else if (RedBlackNode::getColor(sibling->left) == NodeColor::RED) {
+        } else if (RedBlackNode::getColor(sibling->right) == NodeColor::BLACK) {
             sibling->color = NodeColor::RED;
             sibling->left->color = NodeColor::BLACK;
             if (node->parent->left == node) {
@@ -278,7 +277,7 @@ void RedBlackTree::fixDelete(RedBlackNode *node) {
             }
         } else if (RedBlackNode::getColor(sibling->right) == NodeColor::RED) {
             sibling->right->color = NodeColor::BLACK;
-            sibling->color = NodeColor::RED;
+            // sibling->color = NodeColor::RED;
             node->parent->color = NodeColor::BLACK;
             if (node->parent->left == node) {
                 rotateLeft(node->parent);
@@ -288,7 +287,9 @@ void RedBlackTree::fixDelete(RedBlackNode *node) {
             node = sibling->parent;
         }
     }
-    node->color = NodeColor::BLACK;
+    if (node != nullptr) {
+        node->color = NodeColor::BLACK;
+    }
 }
 
 RedBlackNode *RedBlackTree::getSibling(RedBlackNode *node) {
