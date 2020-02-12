@@ -160,3 +160,144 @@ void RedBlackTree::releaseTravel(RedBlackNode *node) {
     releaseTravel(left_children);
     releaseTravel(right_children);
 }
+
+void RedBlackTree::remove(int element) {
+    RedBlackNode *ptr = search(element);
+    RedBlackNode *node = ptr;
+    if (ptr == nullptr) {
+        return;
+    }
+    if (ptr->left != nullptr && ptr->right != nullptr) {
+        node = successor(ptr);
+        ptr->key = node->key;
+    }
+    RedBlackNode *replace_node = node->left != nullptr ? node->left : node->right;
+    if (replace_node != nullptr) {
+        replace_node->parent = node->parent;
+        if (node->parent == nullptr) {
+            root = replace_node;
+        } else if (node == node->parent->left) {
+            node->parent->left = replace_node;
+        } else {
+            node->parent->right = replace_node;
+        }
+        if (node->color == NodeColor::BLACK) {
+            fixDelete(replace_node);
+        }
+        delete node;
+    } else if (node->parent == nullptr) {
+        root = nullptr;
+        delete node;
+    } else {
+        if (node->color == NodeColor::BLACK) {
+            fixDelete(node);
+        }
+        if (node->parent != nullptr) {
+            if (node == node->parent->left) {
+                node->parent->left = nullptr;
+            } else if (node == node->parent->right) {
+                node->parent->right = nullptr;
+            } else {
+                node->parent = nullptr;
+            }
+        }
+        delete node;
+    }
+}
+
+RedBlackNode *RedBlackTree::successor(RedBlackNode *node) {
+    RedBlackNode *ptr = node;
+    if (node == nullptr) {
+        return node;
+    }
+    if (node->left != nullptr) {
+        // node的左子树不为空，则node的后继是其左子树中最小的那个
+        while (true) {
+            if (ptr->left == nullptr) {
+                return ptr;
+            } else {
+                ptr = ptr->left;
+            }
+        }
+    } else if (node->right != nullptr) {
+        // node的右子树不空，则node的后继是 第一个其作为左节点的祖先
+        while (true) {
+            if (ptr->parent == nullptr) {
+                return ptr->parent;
+            }
+
+            if (ptr == ptr->parent->left) {
+                return ptr->parent;
+            } else {
+                ptr = ptr->parent;
+            }
+        }
+    }
+    return node;
+}
+
+RedBlackNode *RedBlackTree::search(int val) {
+    RedBlackNode *ptr = root;
+    while (ptr != nullptr) {
+        if (ptr->key < val) {
+            ptr = ptr->right;
+        } else if (ptr->key > val) {
+            ptr = ptr->left;
+        } else {
+            return ptr;
+        }
+    }
+    return nullptr;
+}
+
+void RedBlackTree::fixDelete(RedBlackNode *node) {
+    if (node == nullptr) {
+        return;
+    }
+    while (node != root && node->color == NodeColor::BLACK) {
+        RedBlackNode *sibling = getSibling(node);
+        if (RedBlackNode::getColor(sibling) == NodeColor::RED) {
+            sibling->color = NodeColor::BLACK;
+            node->parent->color = NodeColor::RED;
+            if (node->parent->left == node) {
+                rotateLeft(node->parent);
+            } else {
+                rotateRight(node->parent);
+            }
+        } else if (RedBlackNode::getColor(sibling->left) == NodeColor::BLACK &&
+                   RedBlackNode::getColor(sibling->right) == NodeColor::BLACK) {
+            sibling->color = NodeColor::RED;
+            node = node->parent;
+        } else if (RedBlackNode::getColor(sibling->left) == NodeColor::RED) {
+            sibling->color = NodeColor::RED;
+            sibling->left->color = NodeColor::BLACK;
+            if (node->parent->left == node) {
+                rotateRight(sibling);
+            } else {
+                rotateLeft(sibling);
+            }
+        } else if (RedBlackNode::getColor(sibling->right) == NodeColor::RED) {
+            sibling->right->color = NodeColor::BLACK;
+            sibling->color = NodeColor::RED;
+            node->parent->color = NodeColor::BLACK;
+            if (node->parent->left == node) {
+                rotateLeft(node->parent);
+            } else {
+                rotateRight(node->parent);
+            }
+            node = sibling->parent;
+        }
+    }
+    node->color = NodeColor::BLACK;
+}
+
+RedBlackNode *RedBlackTree::getSibling(RedBlackNode *node) {
+    if (node == nullptr || node->parent == nullptr) {
+        return nullptr;
+    }
+    if (node == node->parent->left) {
+        return node->parent->right;
+    } else {
+        return node->parent->left;
+    }
+}

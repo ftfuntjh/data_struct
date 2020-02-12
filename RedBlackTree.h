@@ -10,6 +10,7 @@
 enum class NodeColor {
     RED,
     BLACK,
+    DOUBLE_BLACK,
 };
 
 struct RedBlackNode {
@@ -30,6 +31,10 @@ struct RedBlackNode {
                                                                                       left{nullptr},
                                                                                       right{nullptr},
                                                                                       color{node_color} {}
+
+    static NodeColor getColor(RedBlackNode *node) {
+        return node == nullptr ? NodeColor::BLACK : node->color;
+    }
 };
 
 class RedBlackTree {
@@ -37,7 +42,16 @@ public:
     RedBlackTree(std::initializer_list<int> elements);
 
     ~RedBlackTree();
+
     void insert(int element);
+
+    void remove(int element);
+
+    static RedBlackNode *successor(RedBlackNode *node);
+
+    static RedBlackNode *getSibling(RedBlackNode *node);
+
+    RedBlackNode *search(int val);
 
 private:
     void fixInsert(RedBlackNode *node);
@@ -46,9 +60,11 @@ private:
 
     void rotateRight(RedBlackNode *node);
 
-    static void releaseTravel(RedBlackNode * node);
-    RedBlackNode *root;
+    static void releaseTravel(RedBlackNode *node);
 
+    void fixDelete(RedBlackNode *node);
+
+    RedBlackNode *root;
 };
 
 
